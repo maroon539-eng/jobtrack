@@ -1,51 +1,257 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JobTrack | 취업 준비 관리</title>
+  <meta name="description" content="개인 취업 준비 관리 도구: 채용, 경험 DB, 자소서, 면접, 산업 뉴스 기록">
+  <title>JobTrack | 취업 준비 통합 관리</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6fa;
-      margin: 0;
-      padding: 40px;
-      color: #222;
-    }
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-    .card {
-      background: white;
-      padding: 24px;
-      margin: 16px 0;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px #00000010;
-    }
-    h1 { color: #2563eb; }
+    :root{--ink:#172234;--muted:#667488;--line:#e4e9f0;--bg:#f7f9fc;--white:#fff;--accent:#255fbd;--soft:#eef4ff;--danger:#b73636;--ok:#13764b}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+    button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:var(--accent)}
+    .layout{display:grid;grid-template-columns:222px minmax(0,1fr);min-height:100vh}.sidebar{background:#fff;border-right:1px solid var(--line);padding:25px 16px;position:sticky;top:0;height:100vh}
+    .logo{padding:0 12px 20px;font-weight:800;font-size:22px;letter-spacing:-.7px}.logo small{display:block;color:var(--muted);font-weight:400;font-size:11px;letter-spacing:0}
+    .menu{display:grid;gap:5px}.nav{border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:9px;color:#3c4c62;font-weight:600}
+    .nav:hover,.nav.active{background:var(--soft);color:var(--accent)}.sidebar-foot{position:absolute;bottom:22px;left:26px;right:20px;font-size:11px;color:var(--muted)}
+    .main{max-width:1230px;width:100%;margin:0 auto;padding:33px 35px 70px;min-width:0}.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:23px}
+    h1{font-size:25px;line-height:1.25;letter-spacing:-.6px;margin:0}h2{font-size:17px;margin:0 0 15px;letter-spacing:-.2px}h3{font-size:15px;margin:0 0 7px}.hint,.muted{color:var(--muted)}.hint{font-size:12px;margin-top:5px}
+    .action-row,.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:1px solid var(--line);background:white;color:var(--ink);padding:9px 13px;border-radius:8px;font-weight:600;white-space:nowrap}
+    .btn:hover{background:#f2f5fa}.btn.primary{background:var(--accent);border-color:var(--accent);color:white}.btn.primary:hover{background:#164b9b}.btn.warn{color:var(--danger);border-color:#f0cccc}.btn.small{font-size:12px;padding:6px 9px}
+    .card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}.grid{display:grid;gap:14px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+    .stat{padding:17px}.stat strong{display:block;font-size:27px;line-height:1.35;margin-top:6px}.stat span{color:var(--muted);font-size:12px}
+    .twocol{grid-template-columns:1fr 1fr}.inputrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:grid;gap:5px}.field label{font-size:12px;font-weight:700;color:#43536b}
+    input[type="text"],input[type="date"],input[type="url"],input[type="number"],textarea,select{border:1px solid #ccd5e1;padding:10px 11px;outline:0;background:white;border-radius:8px;width:100%;min-width:0;color:var(--ink)}
+    input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px #255fbd16}textarea{resize:vertical;min-height:90px}textarea.big{min-height:180px}
+    .formgrid{display:grid;gap:14px}.formfooter{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.section{display:none}.section.active{display:block}
+    .tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:660px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);vertical-align:middle}th{font-size:12px;color:var(--muted);font-weight:700;background:#f9fbfd}td{font-size:13px}
+    .badge{display:inline-block;border-radius:100px;padding:4px 9px;font-size:11px;background:#eef1f5;color:#394a5e;white-space:nowrap}.badge.blue{background:#e9f0ff;color:#1e5daf}.badge.green{background:#e6f7ef;color:#13764b}.badge.red{background:#fceaea;color:#a73232}
+    .empty{padding:35px 10px;text-align:center;color:var(--muted)}.item{border:1px solid var(--line);border-radius:9px;padding:15px;margin:10px 0;background:#fff}.item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .item-title{font-weight:750;font-size:15px;overflow-wrap:anywhere}.meta{font-size:12px;color:var(--muted);margin-top:4px}.preview{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;margin:10px 0 0;color:#425067}
+    .pillrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.pill{border-radius:100px;background:#f0f3f7;color:#536276;font-size:11px;padding:3px 8px}
+    .sep{border:0;border-top:1px solid var(--line);margin:18px 0}.cols{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px}
+    .tasklist{padding:0;margin:0;list-style:none}.tasklist li{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.tasklist li:last-child{border-bottom:0}
+    .fieldhint{font-size:12px;color:var(--muted)}.btnlink{background:none;border:0;color:var(--accent);padding:0;font-size:12px;text-decoration:underline}
+    .success{color:var(--ok)}.notice{border:1px solid #cfdcf3;background:#f5f8ff;border-radius:9px;padding:12px 14px;color:#435577;font-size:12px;margin-bottom:15px}
+    .prewrap{white-space:pre-wrap;overflow-wrap:anywhere}.inline-list{display:flex;gap:7px;flex-wrap:wrap}.interview-q{font-weight:650;font-size:15px;margin:12px 0}.error{color:var(--danger)}
+    #toast{position:fixed;bottom:23px;right:24px;padding:11px 15px;border:1px solid #c8dcce;border-radius:9px;background:#f2fff7;box-shadow:0 8px 25px #0001;color:#156c42;z-index:5;max-width:360px}
+    [hidden]{display:none!important}@media(max-width:900px){.layout{display:block}.sidebar{position:static;height:auto;padding:12px;border-right:0;border-bottom:1px solid var(--line)}.logo{padding:2px 7px 9px}.sidebar-foot{display:none}.menu{display:flex;overflow-x:auto;padding-bottom:2px}.nav{white-space:nowrap;padding:9px 11px}.main{padding:24px 15px 60px}.stats{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
+    @media(max-width:570px){.inputrow,.twocol{grid-template-columns:1fr}.topline{align-items:flex-start}.stats{gap:8px}.card{padding:15px}.stat{padding:13px}.stat strong{font-size:23px}.main{padding:18px 10px 50px}}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>JobTrack</h1>
-    <p>나만의 취업 준비 관리 대시보드</p>
-
-    <div class="card">
-      <h2>채용공고 관리</h2>
-      <p>관심 기업의 채용공고와 마감일을 관리합니다.</p>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">JobTrack<small>Personal Career Workspace</small></div>
+    <nav class="menu" aria-label="메인 메뉴">
+      <button class="nav active" data-tab="dashboard">▤ &nbsp; 대시보드</button>
+      <button class="nav" data-tab="jobs">▦ &nbsp; 채용 관리</button>
+      <button class="nav" data-tab="insights">▤ &nbsp; 산업 인사이트</button>
+      <button class="nav" data-tab="essays">▥ &nbsp; 자소서 스튜디오</button>
+      <button class="nav" data-tab="interview">▣ &nbsp; 면접 준비</button>
+      <button class="nav" data-tab="experiences">▧ &nbsp; 경험 DB</button>
+    </nav>
+    <div class="sidebar-foot">v2.0 · 무료 · 내 브라우저에 저장</div>
+  </aside>
+  <main class="main">
+    <div class="topline">
+      <div><h1 id="pageTitle">대시보드</h1><div class="hint" id="pageSub">취업 준비 현황을 한눈에 관리합니다.</div></div>
+      <div class="action-row"><button type="button" class="btn small" id="backupBtn">데이터 백업 ↓</button><button type="button" class="btn small" id="restoreBtn">백업 복원 ↑</button><input type="file" id="restoreFile" accept=".json,application/json" hidden></div>
     </div>
+    <div id="storageWarning" class="notice" hidden>브라우저 저장 기능을 사용할 수 없습니다. 데이터를 입력하기 전에 저장 설정을 확인하세요.</div>
 
-    <div class="card">
-      <h2>자기소개서 관리</h2>
-      <p>회사별 자기소개서를 정리하고 관리합니다.</p>
-    </div>
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="section active">
+      <div class="grid stats">
+        <div class="card stat"><span>등록 공고</span><strong id="dJobs">0</strong></div>
+        <div class="card stat"><span>결과 대기</span><strong id="dWaiting">0</strong></div>
+        <div class="card stat"><span>경험 DB</span><strong id="dExperiences">0</strong></div>
+        <div class="card stat"><span>작성한 자소서</span><strong id="dEssays">0</strong></div>
+      </div>
+      <div class="grid twocol">
+        <div class="card"><h2>다가오는 일정</h2><ul class="tasklist" id="dSchedule"></ul></div>
+        <div class="card"><h2>빠른 시작</h2><div class="grid"><button class="btn" data-jump="jobs">+ 채용공고 등록</button><button class="btn" data-jump="experiences">+ 경험 정리하기</button><button class="btn" data-jump="essays">+ 자소서 작성하기</button><button class="btn" data-jump="interview">면접 연습하기</button></div></div>
+      </div>
+      <div class="notice">모든 개인 기록은 현재 브라우저에만 저장됩니다. 중요한 내용은 오른쪽 상단의 <b>데이터 백업</b> 버튼으로 정기적으로 보관하세요. GitHub의 공개 코드에는 자동으로 업로드되지 않습니다.</div>
+    </section>
 
-    <div class="card">
-      <h2>지원 현황</h2>
-      <p>서류, 면접, 최종 결과를 관리합니다.</p>
-    </div>
-  </div>
+    <!-- JOBS -->
+    <section id="jobs" class="section">
+      <div class="action-row" style="margin-bottom:15px"><button type="button" class="btn primary" id="newJob">+ 공고 추가</button><input type="text" id="jobSearch" aria-label="공고 검색" placeholder="기업명 또는 직무 검색" style="max-width:260px"><select id="jobFilter" aria-label="전형 상태 필터" style="max-width:170px"><option value="">전체 상태</option><option>지원 예정</option><option>미발표</option><option>서류 합격</option><option>인적성 합격</option><option>면접 진행</option><option>면접 합격</option><option>최종 합격</option><option>불합격</option></select></div>
+      <div class="card" id="jobEditor" hidden><h2 id="jobEditorTitle">공고 등록</h2>
+        <form id="jobForm" class="formgrid">
+          <div class="inputrow"><div class="field"><label for="jCompany">기업명 *</label><input id="jCompany" type="text" maxlength="100" required placeholder="예: KLA"></div><div class="field"><label for="jRole">지원 직무 *</label><input id="jRole" type="text" maxlength="120" required placeholder="예: Customer Support Engineer"></div></div>
+          <div class="inputrow"><div class="field"><label for="jStatus">전형 상태 *</label><select id="jStatus"><option>지원 예정</option><option selected>미발표</option><option>서류 합격</option><option>인적성 합격</option><option>면접 진행</option><option>면접 합격</option><option>최종 합격</option><option>불합격</option></select></div><div class="field"><label for="jApplied">지원일</label><input type="date" id="jApplied"></div></div>
+          <div class="inputrow"><div class="field"><label for="jDeadline">지원 마감일</label><input type="date" id="jDeadline"></div><div class="field"><label for="jResult">발표 / 면접 예정일</label><input type="date" id="jResult"></div></div>
+          <div class="field"><label for="jLink">공고 링크</label><input type="url" id="jLink" placeholder="https://..."></div>
+          <div class="field"><label for="jMemo">메모</label><textarea id="jMemo" placeholder="발표 예상일, 참고 사항 등"></textarea></div>
+          <div class="formfooter"><button type="button" class="btn" id="cancelJob">취소</button><button class="btn primary" type="submit">저장</button></div>
+        </form>
+      </div>
+      <div class="card"><h2>지원 목록 <span class="hint" id="jobCount"></span></h2><div class="tablewrap"><table><thead><tr><th>기업 / 직무</th><th>지원일</th><th>발표·면접일</th><th>상태</th><th>관리</th></tr></thead><tbody id="jobRows"></tbody></table></div></div>
+    </section>
+
+    <!-- EXPERIENCE DB -->
+    <section id="experiences" class="section">
+      <div class="notice">하나의 경험 원본을 자소서와 면접 준비에서 함께 사용합니다. 사실을 정확히 기록하고, 실제로 수행한 역할과 근거를 구분해 두세요.</div>
+      <div class="action-row" style="margin-bottom:15px"><button class="btn primary" id="newExperience">+ 경험 등록</button><input type="text" id="expSearch" placeholder="경험명 / 역량 검색" aria-label="경험 검색" style="max-width:290px"></div>
+      <div class="card" id="experienceEditor" hidden><h2 id="experienceEditorTitle">경험 등록</h2><form id="experienceForm" class="formgrid">
+        <div class="inputrow"><div class="field"><label for="eTitle">경험명 *</label><input type="text" id="eTitle" required placeholder="예: 인턴 측정 조건 표준화"></div><div class="field"><label for="ePeriod">기간</label><input id="ePeriod" type="text" placeholder="예: 2026년 1~3월"></div></div>
+        <div class="field"><label for="eSituation">상황 / 배경</label><textarea id="eSituation" placeholder="어떤 환경이었는가?"></textarea></div>
+        <div class="field"><label for="eProblem">문제 / 어려움</label><textarea id="eProblem" placeholder="무슨 문제가 있었는가?"></textarea></div>
+        <div class="field"><label for="eGoal">목표와 맡은 역할</label><textarea id="eGoal" placeholder="내가 책임진 범위와 달성 목표"></textarea></div>
+        <div class="field"><label for="eAction">내가 수행한 행동 *</label><textarea id="eAction" placeholder="분석, 실험, 협업 과정 등을 사실에 근거해 작성" required></textarea></div>
+        <div class="field"><label for="eResult">결과 / 정량 성과</label><textarea id="eResult" placeholder="전후 비교 결과, 수치, 최종 성과"></textarea></div>
+        <div class="field"><label for="eEvidence">성과 산출 근거 / 검증</label><textarea id="eEvidence" placeholder="수치 계산 기준, 검증 방법, 확보된 자료"></textarea></div>
+        <div class="field"><label for="eTechnical">기술 원리 / 분석 판단 근거</label><textarea id="eTechnical" placeholder="선택한 변수, 장비/방법, 원리, 대안"></textarea></div>
+        <div class="field"><label for="eLesson">한계 / 배운 점</label><textarea id="eLesson" placeholder="한계, 후속 개선, 실제 배운 점"></textarea></div>
+        <div class="field"><label for="eTags">핵심 역량 (쉼표로 구분)</label><input id="eTags" type="text" placeholder="문제 해결, 데이터 분석, 협업"></div>
+        <div class="formfooter"><button type="button" class="btn" id="cancelExperience">취소</button><button class="btn primary" type="submit">경험 저장</button></div>
+      </form></div>
+      <div class="card"><h2>내 경험 목록 <span class="hint" id="expCount"></span></h2><div id="experienceList"></div></div>
+    </section>
+
+    <!-- ESSAYS -->
+    <section id="essays" class="section">
+      <div class="notice">선택한 경험 DB 내용을 바탕으로 ChatGPT 분석 요청문을 만들 수 있습니다. 요청문은 <b>클립보드에 복사</b>되며, ChatGPT에 자동 전송되지 않습니다.</div>
+      <div class="action-row" style="margin-bottom:15px"><button class="btn primary" id="newEssay">+ 자소서 작성</button></div>
+      <div class="card" id="essayEditor" hidden><h2 id="essayEditorTitle">자소서 작성</h2><form id="essayForm" class="formgrid">
+        <div class="inputrow"><div class="field"><label for="aCompany">기업 *</label><input id="aCompany" required></div><div class="field"><label for="aRole">직무 *</label><input id="aRole" required></div></div>
+        <div class="field"><label for="aQuestion">자소서 문항 *</label><textarea id="aQuestion" required></textarea></div>
+        <div class="inputrow"><div class="field"><label for="aExperience">활용 경험 (공통 경험 DB)</label><select id="aExperience"><option value="">경험 선택 안 함</option></select></div><div class="field"><label for="aLimit">목표 글자 수</label><input type="number" id="aLimit" min="0" max="10000" placeholder="예: 1000"></div></div>
+        <div class="field"><label for="aBody">작성한 자소서</label><textarea id="aBody" class="big" placeholder="내가 작성한 자소서를 저장하거나, GPT에서 만든 초안을 붙여넣으세요."></textarea><div class="fieldhint" id="essayCharCount">0자</div></div>
+        <div class="formfooter"><button type="button" class="btn" id="cancelEssay">취소</button><button type="button" class="btn" id="copyEssayPrompt">GPT 요청문 복사</button><button type="button" class="btn" id="openChatGPT">ChatGPT 열기 ↗</button><button type="submit" class="btn primary">자소서 저장</button></div>
+      </form></div>
+      <div class="card"><h2>자소서 보관함</h2><div id="essayList"></div></div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section id="interview" class="section">
+      <div class="notice">경험 DB를 기반으로 4단계 심층 질문을 연습합니다. 추가적인 맞춤 꼬리질문은 GPT 요청문을 복사해서 기존 ChatGPT에서 진행할 수 있어요.</div>
+      <div class="card"><h2>경험 심층 면접</h2><div class="inputrow">
+        <div class="field"><label for="iExperience">연습할 경험</label><select id="iExperience"><option value="">경험을 먼저 등록하세요</option></select></div>
+        <div class="field"><label for="iLevel">질문 단계</label><select id="iLevel"><option value="1">1단계 · 기본 설명</option><option value="2">2단계 · 문제 해결 판단</option><option value="3">3단계 · 기술 원리</option><option value="4">4단계 · 검증 / 압박 질문</option></select></div>
+      </div><div id="interviewPractice" hidden><div class="interview-q" id="iQuestion"></div><div class="field"><label for="iAnswer">내 답변 / 복습 노트</label><textarea id="iAnswer" class="big" placeholder="질문에 답하고 부족한 부분을 기록하세요."></textarea></div>
+      <div class="action-row" style="margin-top:12px"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="iWeak"> 복습 필요</label><span style="flex:1"></span><button type="button" class="btn" id="prevQuestion">이전 질문</button><button type="button" class="btn" id="saveInterview">답변 저장</button><button type="button" class="btn primary" id="nextQuestion">다음 질문 →</button></div></div>
+      <div id="noInterview" class="empty">경험 DB에 경험을 등록하면 면접 질문을 연습할 수 있어요.</div>
+      <hr class="sep"><div class="action-row"><button type="button" class="btn" id="copyInterviewPrompt">GPT 심층 면접 요청문 복사</button><button type="button" class="btn" id="openInterviewChat">ChatGPT 열기 ↗</button></div>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section id="insights" class="section">
+      <div class="notice">이 버전은 기사 <b>스크랩과 한 줄 정리</b> 기능부터 제공합니다. RSS 기반 최신 뉴스 자동 수집은 다음 개발 단계에서 추가합니다. AI 뉴스 요약 기능은 넣지 않습니다.</div>
+      <div class="action-row" style="margin-bottom:15px"><button class="btn primary" id="newArticle">+ 기사 스크랩</button><select id="newsFilter" style="max-width:180px" aria-label="기사 분류"><option value="">전체 분류</option><option>반도체</option><option>반도체 장비</option><option>이차전지</option><option>첨단 패키징</option><option>기타</option></select><label style="font-size:12px"><input type="checkbox" id="onlyBookmarks"> 중요 기사만</label></div>
+      <div class="card" id="articleEditor" hidden><h2 id="articleEditorTitle">기사 스크랩</h2><form id="articleForm" class="formgrid">
+        <div class="field"><label for="nTitle">기사 제목 *</label><input id="nTitle" required></div><div class="field"><label for="nUrl">원문 링크 *</label><input id="nUrl" type="url" required placeholder="https://..."></div>
+        <div class="inputrow"><div class="field"><label for="nCategory">분류</label><select id="nCategory"><option>반도체</option><option>반도체 장비</option><option>이차전지</option><option>첨단 패키징</option><option>기타</option></select></div><div class="field"><label for="nDate">기사 날짜</label><input id="nDate" type="date"></div></div>
+        <div class="field"><label for="nSource">언론사 / 출처</label><input id="nSource" placeholder="예: 기업 뉴스룸"></div>
+        <div class="field"><label for="nNote">나의 한 줄 정리</label><textarea id="nNote" placeholder="기사에서 기억할 핵심 내용을 한 줄로 작성"></textarea></div>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="nBookmark"> 중요 기사로 표시</label>
+        <div class="formfooter"><button type="button" class="btn" id="cancelArticle">취소</button><button class="btn primary" type="submit">스크랩 저장</button></div>
+      </form></div>
+      <div class="card"><h2>내 기사 스크랩</h2><div id="articleList"></div></div>
+    </section>
+  </main>
+</div>
+<div id="toast" role="status" hidden></div>
+<script>
+(()=>{'use strict';
+  const KEY='jobtrack_v2';
+  const LEGACY='jobtrack_jobs_v1';
+  const defaults=()=>({version:2,jobs:[],experiences:[],essays:[],interviewNotes:[],articles:[]});
+  const $=id=>document.getElementById(id);
+  const val=id=>$(id).value.trim();
+  const getDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
+  const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2);
+  const txt=(tag,value,cls)=>{const e=document.createElement(tag);e.textContent=value==null?'':String(value);if(cls)e.className=cls;return e;};
+  const btn=(label,fn,cls='btn small')=>{const e=txt('button',label,cls);e.type='button';e.onclick=fn;return e;};
+  const validUrl=u=>{try{const x=new URL(u);return ['https:','http:'].includes(x.protocol)?x.href:null;}catch{return null;}};
+  const maxLength=(x,max=20000)=>String(x==null?'':x).slice(0,max);
+  let data=defaults(),editJobId=null,editExpId=null,editEssayId=null,editArticleId=null,questionIndex=0;
+  let storageOK=true;
+  try{
+    const s=localStorage.getItem(KEY);
+    if(s){const parsed=JSON.parse(s);if(parsed&&typeof parsed==='object')for(const k of ['jobs','experiences','essays','interviewNotes','articles'])data[k]=Array.isArray(parsed[k])?parsed[k]:[];}
+    else{
+      const old=JSON.parse(localStorage.getItem(LEGACY)||'[]');
+      if(Array.isArray(old)&&old.length){data.jobs=old.filter(x=>x&&x.company).map(j=>({id:String(j.id||uid()),company:maxLength(j.company,100),role:maxLength(j.position||j.role,120),status:({관심:'지원 예정','지원 완료':'미발표',면접:'면접 진행'}[j.status]||(['지원 예정','미발표','서류 합격','인적성 합격','면접 진행','면접 합격','최종 합격','불합격'].includes(j.status)?j.status:'미발표')),applied:'',deadline:j.deadline||'',result:'',link:'',memo:''}));localStorage.setItem(KEY,JSON.stringify(data));}
+    }
+    const k='jobtrack_probe';localStorage.setItem(k,'1');localStorage.removeItem(k);
+  }catch(err){storageOK=false;$('storageWarning').hidden=false;console.warn('저장 공간 확인 실패',err);}
+  function toast(msg){const el=$('toast');el.textContent=msg;el.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.hidden=true,3000);}
+  function save(){if(!storageOK){toast('브라우저 저장 기능을 사용할 수 없습니다.');return false;}try{localStorage.setItem(KEY,JSON.stringify(data));return true;}catch(err){alert('저장에 실패했습니다. 저장 공간을 확인하세요.');return false;}}
+  function commit(){if(save()){renderAll();toast('저장했어요.');return true;}return false;}
+  function setTab(tab){document.querySelectorAll('.nav').forEach(n=>{n.classList.toggle('active',n.dataset.tab===tab);n.setAttribute('aria-current',n.dataset.tab===tab?'page':'false');});document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===tab));const names={dashboard:['대시보드','취업 준비 현황을 한눈에 관리합니다.'],jobs:['채용 관리','지원 기업과 전형 결과를 기록합니다.'],insights:['산업 인사이트','산업 뉴스와 한 줄 정리를 모읍니다.'],essays:['자소서 스튜디오','경험 DB를 활용해 자소서를 관리합니다.'],interview:['면접 준비','경험을 깊게 이해하고 꼬리질문에 대비합니다.'],experiences:['경험 DB','자소서와 면접에서 함께 쓰는 나의 경험 원본입니다.']};$('pageTitle').textContent=names[tab][0];$('pageSub').textContent=names[tab][1];location.hash=tab;window.scrollTo(0,0);}
+  document.querySelectorAll('[data-tab]').forEach(e=>e.addEventListener('click',()=>setTab(e.dataset.tab)));
+  document.querySelectorAll('[data-jump]').forEach(e=>e.addEventListener('click',()=>{setTab(e.dataset.jump);if(e.dataset.jump==='jobs')openJob();if(e.dataset.jump==='experiences')openExp();if(e.dataset.jump==='essays')openEssay();}));
+  function dayDelta(date){if(!/^\d{4}-\d{2}-\d{2}$/.test(date||''))return null;const today=getDate();return Math.round((Date.parse(date+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);}
+  function displayDate(date){return date||'—';}
+  function badge(s){return txt('span',s,'badge '+(['서류 합격','인적성 합격','면접 합격','최종 합격'].includes(s)?'green':s==='불합격'?'red':['미발표','면접 진행'].includes(s)?'blue':''));}
+  function renderDashboard(){ $('dJobs').textContent=data.jobs.length;$('dWaiting').textContent=data.jobs.filter(j=>j.status==='미발표').length;$('dExperiences').textContent=data.experiences.length;$('dEssays').textContent=data.essays.length;
+    const ul=$('dSchedule');ul.replaceChildren();const schedule=[];for(const j of data.jobs){if(j.result){const d=dayDelta(j.result);if(d!==null&&d>=0)schedule.push({date:j.result,title:j.company+' · 결과 발표 / 면접 예정',sub:j.role});}else if(j.deadline&&j.status==='지원 예정'){const d=dayDelta(j.deadline);if(d!==null&&d>=0)schedule.push({date:j.deadline,title:j.company+' · 지원 마감',sub:j.role});}}
+    schedule.sort((a,b)=>a.date.localeCompare(b.date));if(!schedule.length){ul.append(txt('li','등록된 예정 일정이 없습니다.','muted'));return;}for(const item of schedule.slice(0,7)){const li=document.createElement('li');li.append(txt('strong',item.date+'  '),txt('span',item.title),txt('div',item.sub,'meta'));ul.append(li);}
+  }
+  function showEditor(id,on){$(id).hidden=!on;if(on)$(id).scrollIntoView({behavior:'smooth',block:'nearest'});}
+  // Job management
+  function openJob(id=null){editJobId=id;$('jobForm').reset();$('jStatus').value='미발표';$('jobEditorTitle').textContent=id?'공고 수정':'공고 등록';if(id){const j=data.jobs.find(x=>x.id===id);if(!j)return;for(const [a,b] of [['jCompany','company'],['jRole','role'],['jStatus','status'],['jApplied','applied'],['jDeadline','deadline'],['jResult','result'],['jLink','link'],['jMemo','memo']])$(a).value=j[b]||'';}showEditor('jobEditor',true);}
+  $('newJob').onclick=()=>openJob();$('cancelJob').onclick=()=>showEditor('jobEditor',false);
+  $('jobForm').onsubmit=e=>{e.preventDefault();const link=val('jLink');if(link&&!validUrl(link)){alert('http 또는 https 공고 링크를 입력하세요.');return;}
+    const j={id:editJobId||uid(),company:val('jCompany'),role:val('jRole'),status:val('jStatus'),applied:val('jApplied'),deadline:val('jDeadline'),result:val('jResult'),link, memo:val('jMemo')};if(!j.company||!j.role)return;
+    const before=[...data.jobs];if(editJobId){data.jobs=data.jobs.map(x=>x.id===editJobId?j:x);}else data.jobs.push(j);
+    if(commit()){showEditor('jobEditor',false);editJobId=null;}else data.jobs=before;
+  };
+  $('jobSearch').oninput=renderJobs;$('jobFilter').onchange=renderJobs;
+  function renderJobs(){const tbody=$('jobRows');tbody.replaceChildren();const q=val('jobSearch').toLocaleLowerCase();const filter=val('jobFilter');const jobs=data.jobs.filter(j=>(!q||(j.company+' '+j.role).toLocaleLowerCase().includes(q))&&(!filter||filter===j.status)).sort((a,b)=>(b.applied||'').localeCompare(a.applied||''));$('jobCount').textContent=`(${jobs.length}건)`;
+    if(!jobs.length){const tr=document.createElement('tr');const td=txt('td','등록된 공고가 없습니다.','empty');td.colSpan=5;tr.append(td);tbody.append(tr);return;}
+    for(const j of jobs){const tr=document.createElement('tr');const name=document.createElement('td');name.append(txt('strong',j.company),txt('div',j.role||'','meta'));if(j.link&&validUrl(j.link)){const a=txt('a','원문 ↗','meta');a.href=validUrl(j.link);a.target='_blank';a.rel='noopener noreferrer';name.append(a);}const action=document.createElement('td');action.append(btn('수정',()=>openJob(j.id)));action.append(' ');action.append(btn('삭제',()=>{if(!confirm(`${j.company} 공고를 삭제할까요?`))return;const old=data.jobs;data.jobs=data.jobs.filter(x=>x.id!==j.id);if(!commit())data.jobs=old;},'btn small warn'));const statusTd=document.createElement('td');statusTd.append(badge(j.status));const next=txt('td',displayDate(j.result));tr.append(name,txt('td',displayDate(j.applied)),next,statusTd,action);tbody.append(tr);}
+  }
+  // Experience database
+  const expMap=[['eTitle','title'],['ePeriod','period'],['eSituation','situation'],['eProblem','problem'],['eGoal','goal'],['eAction','action'],['eResult','result'],['eEvidence','evidence'],['eTechnical','technical'],['eLesson','lesson'],['eTags','tags']];
+  function openExp(id=null){editExpId=id;$('experienceForm').reset();$('experienceEditorTitle').textContent=id?'경험 수정':'경험 등록';if(id){const x=data.experiences.find(v=>v.id===id);if(!x)return;for(const [dom,key] of expMap)$(dom).value=x[key]||'';}showEditor('experienceEditor',true);}
+  $('newExperience').onclick=()=>openExp();$('cancelExperience').onclick=()=>showEditor('experienceEditor',false);$('expSearch').oninput=renderExperiences;
+  $('experienceForm').onsubmit=e=>{e.preventDefault();const x={id:editExpId||uid(),updatedAt:new Date().toISOString()};for(const [dom,key] of expMap)x[key]=val(dom);if(!x.title||!x.action)return;const before=[...data.experiences];data.experiences=editExpId?data.experiences.map(z=>z.id===editExpId?x:z):[...data.experiences,x];if(commit()){editExpId=null;showEditor('experienceEditor',false);}else data.experiences=before;};
+  function renderExperiences(){const list=$('experienceList');list.replaceChildren();const q=val('expSearch').toLocaleLowerCase();const found=data.experiences.filter(x=>(x.title+' '+x.tags+' '+x.action).toLocaleLowerCase().includes(q));$('expCount').textContent=`(${found.length}건)`;if(!found.length){list.append(txt('div','등록된 경험이 없습니다. 경험을 먼저 정리해 보세요.','empty'));return;}
+    for(const x of found){const wrap=document.createElement('div');wrap.className='item';const head=document.createElement('div');head.className='item-head';const info=document.createElement('div');info.append(txt('div',x.title,'item-title'),txt('div',x.period||'기간 미입력','meta'));const controls=document.createElement('div');controls.className='action-row';controls.append(btn('수정',()=>openExp(x.id)),btn('자소서에 활용',()=>{setTab('essays');openEssay(null,x.id);}),btn('면접 연습',()=>{setTab('interview');$('iExperience').value=x.id;questionIndex=0;renderInterview();}),btn('삭제',()=>{if(!confirm(`경험 '${x.title}'을 삭제할까요? 관련 자소서의 경험 연결도 끊어집니다.`))return;const old=[...data.experiences];data.experiences=data.experiences.filter(z=>z.id!==x.id);if(!commit())data.experiences=old;},'btn small warn'));head.append(info,controls);wrap.append(head);const line=x.result||x.action||'';if(line)wrap.append(txt('p',line.length>230?line.slice(0,230)+'…':line,'preview'));const tags=document.createElement('div');tags.className='pillrow';(x.tags||'').split(',').map(t=>t.trim()).filter(Boolean).forEach(t=>tags.append(txt('span',t,'pill')));wrap.append(tags);list.append(wrap);}
+  }
+  function syncExpSelectors(){const selects=[$('aExperience'),$('iExperience')];for(const sel of selects){const old=sel.value;sel.replaceChildren();sel.append(new Option(sel.id==='aExperience'?'경험 선택 안 함':'경험을 선택하세요',''));for(const x of data.experiences)sel.append(new Option(x.title,x.id));if([...sel.options].some(o=>o.value===old))sel.value=old;}}
+  function facts(exp){if(!exp)return '연결된 경험 없음';return [['경험명',exp.title],['기간',exp.period],['상황',exp.situation],['문제',exp.problem],['목표와 본인 역할',exp.goal],['실제로 수행한 행동',exp.action],['결과',exp.result],['성과 검증 근거',exp.evidence],['기술·판단 근거',exp.technical],['한계·배운 점',exp.lesson],['역량',exp.tags]].filter(a=>a[1]).map(a=>a[0]+': '+a[1]).join('\n');}
+  // Essay studio
+  function openEssay(id=null,experienceId=null){editEssayId=id;$('essayForm').reset();syncExpSelectors();$('essayEditorTitle').textContent=id?'자소서 수정':'자소서 작성';if(id){const x=data.essays.find(z=>z.id===id);if(!x)return;for(const [dom,key] of [['aCompany','company'],['aRole','role'],['aQuestion','question'],['aExperience','experienceId'],['aLimit','limit'],['aBody','body']])$(dom).value=x[key]||'';}else if(experienceId)$('aExperience').value=experienceId;essayCount();showEditor('essayEditor',true);}
+  function essayCount(){const n=[...$('aBody').value].length;const limit=Number($('aLimit').value)||0;$('essayCharCount').textContent=`${n.toLocaleString('ko-KR')}자${limit?' / 목표 '+limit+'자'+(n>limit?' (초과)':''):''}`;}
+  $('newEssay').onclick=()=>openEssay();$('cancelEssay').onclick=()=>showEditor('essayEditor',false);$('aBody').oninput=essayCount;$('aLimit').oninput=essayCount;
+  $('essayForm').onsubmit=e=>{e.preventDefault();const x={id:editEssayId||uid(),company:val('aCompany'),role:val('aRole'),question:val('aQuestion'),experienceId:val('aExperience'),limit:val('aLimit'),body:$('aBody').value,updatedAt:new Date().toISOString()};if(!x.company||!x.role||!x.question)return;const before=[...data.essays];data.essays=editEssayId?data.essays.map(z=>z.id===editEssayId?x:z):[...data.essays,x];if(commit()){showEditor('essayEditor',false);editEssayId=null;}else data.essays=before;};
+  function promptEssay(){const ex=data.experiences.find(x=>x.id===val('aExperience'));return `너는 취업 자기소개서 작성 코치야. 아래 정보를 바탕으로 먼저 문항 의도를 분석하고, 경험의 활용 방향을 제안해줘. 필요하면 초안도 작성해줘.\n\n지원 기업: ${val('aCompany')||'(미입력)'}\n직무: ${val('aRole')||'(미입력)'}\n자소서 문항: ${val('aQuestion')||'(미입력)'}\n목표 글자 수: ${val('aLimit')||'제한 없음'}\n\n[검증된 경험 DB]\n${facts(ex)}\n\n작성 원칙:\n1. 경험 DB에 없는 역할, 수치, 기술, 결과를 만들어내지 말 것.\n2. 문항에 직접 답하고 두괄식으로 쓸 것.\n3. 문단 역할을 분명히 하고 같은 내용의 반복을 줄일 것.\n4. 직무 요구 역량과 실제 행동을 명확히 연결할 것.\n5. 근거 부족한 부분은 질문으로 확인할 것.\n6. 글자 수를 맞추고 과장된 표현을 피할 것.\n\n현재 초안(있다면):\n${$('aBody').value||'(없음)'}`;}
+  async function copyText(s){try{await navigator.clipboard.writeText(s);toast('GPT 요청문을 복사했어요. ChatGPT에 붙여넣으세요.');}catch{const ta=document.createElement('textarea');ta.value=s;ta.style.position='fixed';ta.style.top='-2000px';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(ok)toast('요청문을 복사했어요.');else alert('복사에 실패했습니다. HTTPS 페이지에서 다시 시도해 주세요.');}}
+  $('copyEssayPrompt').onclick=()=>copyText(promptEssay());$('openChatGPT').onclick=()=>window.open('https://chatgpt.com/','_blank','noopener,noreferrer');
+  function renderEssays(){const root=$('essayList');root.replaceChildren();if(!data.essays.length){root.append(txt('div','아직 저장된 자소서가 없습니다.','empty'));return;}
+    for(const x of [...data.essays].sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))){const item=document.createElement('div');item.className='item';const head=document.createElement('div');head.className='item-head';const label=document.createElement('div');label.append(txt('div',x.company+' · '+x.role,'item-title'),txt('div',x.question||'','meta'));const ctrl=document.createElement('div');ctrl.className='action-row';ctrl.append(btn('열기 / 수정',()=>openEssay(x.id)),btn('삭제',()=>{if(!confirm('이 자소서를 삭제할까요?'))return;const old=data.essays;data.essays=data.essays.filter(z=>z.id!==x.id);if(!commit())data.essays=old;},'btn small warn'));head.append(label,ctrl);item.append(head);const ex=data.experiences.find(e=>e.id===x.experienceId);item.append(txt('div',`${[...(x.body||'')].length}자 · 경험: ${ex?ex.title:'미선택'} · 최종 수정: ${(x.updatedAt||'').slice(0,10)}`,'meta'));root.append(item);}
+  }
+  // Interview questions + saved notes
+  const Q={
+    1:['이 경험을 1분 이내로 설명해 주세요.','이 경험에서 본인이 맡았던 역할은 무엇인가요?','가장 중요한 성과는 무엇인가요?'],
+    2:['문제를 처음 발견했을 때 어떤 근거를 확인했나요?','여러 원인 중 해당 원인을 선택한 이유는 무엇인가요?','어떤 대안을 비교하고 왜 그 방법을 택했나요?'],
+    3:['사용한 측정·분석·실험 방법의 원리를 설명해 주세요.','주요 변수의 영향은 어떤 방식으로 확인했나요?','다른 조건이나 환경에서 결과가 달라질 가능성은 무엇인가요?'],
+    4:['성과 수치는 어떤 기준과 방법으로 계산했나요?','이 경험에서 본인의 기여와 다른 사람의 기여를 구분해 설명해 주세요.','결과의 한계와 재검증이 필요한 부분은 무엇인가요?','같은 문제가 재발한다면 무엇부터 점검하겠습니까?']
+  };
+  const noteId=(expId,level,index)=>expId+':'+level+':'+index;
+  function currentNote(){const expId=val('iExperience'),level=val('iLevel');return data.interviewNotes.find(n=>n.id===noteId(expId,level,questionIndex));}
+  function renderInterview(){const exp=data.experiences.find(x=>x.id===val('iExperience'));$('interviewPractice').hidden=!exp;$('noInterview').hidden=!!exp;if(!exp)return;const lvl=val('iLevel');const questions=Q[lvl];questionIndex=Math.min(Math.max(questionIndex,0),questions.length-1);$('iQuestion').textContent=`${questionIndex+1}/${questions.length}. ${questions[questionIndex]}`;const note=currentNote();$('iAnswer').value=note?note.answer:'';$('iWeak').checked=!!(note&&note.weak);$('prevQuestion').disabled=questionIndex===0;$('nextQuestion').disabled=questionIndex===questions.length-1;}
+  function saveNote(){const expId=val('iExperience');if(!expId)return;const level=val('iLevel');const id=noteId(expId,level,questionIndex);const note={id,experienceId:expId,level,index:questionIndex,question:Q[level][questionIndex],answer:$('iAnswer').value,weak:$('iWeak').checked,updatedAt:new Date().toISOString()};const old=data.interviewNotes;data.interviewNotes=[...old.filter(n=>n.id!==id),note];if(!save()){data.interviewNotes=old;return false;}toast('면접 답변을 저장했어요.');return true;}
+  $('iExperience').onchange=()=>{questionIndex=0;renderInterview();};$('iLevel').onchange=()=>{questionIndex=0;renderInterview();};$('saveInterview').onclick=saveNote;$('nextQuestion').onclick=()=>{if(saveNote()){questionIndex++;renderInterview();}};$('prevQuestion').onclick=()=>{if(saveNote()){questionIndex--;renderInterview();}};
+  $('copyInterviewPrompt').onclick=()=>{const ex=data.experiences.find(x=>x.id===val('iExperience'));if(!ex){alert('경험 DB에서 연습할 경험을 먼저 선택해 주세요.');return;}copyText(`너는 반도체·배터리·제조업 엔지니어 직무 면접관이야. 아래 실제 경험에 근거해 심층 면접을 진행해줘.\n\n[경험 원본]\n${facts(ex)}\n\n진행 규칙:\n- 질문을 한 번에 하나씩 제시하고 내 답변을 기다려.\n- 1단계 기본 설명 → 2단계 원인 분석과 판단 → 3단계 기술적 원리 → 4단계 성과 검증 및 압박 질문으로 깊게 파고들어.\n- 내가 답변하면 답변에 맞춘 꼬리질문을 해.\n- 잘 모르는 부분은 알려주되 확인되지 않은 경험 사실은 만들어내지 마.\n- 질문에 직접 답했는지, 기술적으로 맞는지, 답변이 간결한지 평가해.\n- 내가 요청하기 전에는 질문하지 않은 지원동기나 포부를 덧붙이지 마.`);};
+  $('openInterviewChat').onclick=()=>window.open('https://chatgpt.com/','_blank','noopener,noreferrer');
+  // News clipping (RSS automation follows later)
+  function openArticle(id=null){editArticleId=id;$('articleForm').reset();$('articleEditorTitle').textContent=id?'스크랩 수정':'기사 스크랩';if(id){const x=data.articles.find(z=>z.id===id);if(!x)return;for(const [dom,key] of [['nTitle','title'],['nUrl','url'],['nCategory','category'],['nDate','date'],['nSource','source'],['nNote','note']])$(dom).value=x[key]||'';$('nBookmark').checked=!!x.bookmark;}else $('nDate').value=getDate();showEditor('articleEditor',true);}
+  $('newArticle').onclick=()=>openArticle();$('cancelArticle').onclick=()=>showEditor('articleEditor',false);$('newsFilter').onchange=renderArticles;$('onlyBookmarks').onchange=renderArticles;
+  $('articleForm').onsubmit=e=>{e.preventDefault();const url=validUrl(val('nUrl'));if(!url){alert('http 또는 https 링크를 입력해 주세요.');return;}const x={id:editArticleId||uid(),title:val('nTitle'),url,category:val('nCategory'),date:val('nDate'),source:val('nSource'),note:val('nNote'),bookmark:$('nBookmark').checked};if(!x.title)return;const before=[...data.articles];data.articles=editArticleId?data.articles.map(z=>z.id===editArticleId?x:z):[...data.articles,x];if(commit()){editArticleId=null;showEditor('articleEditor',false);}else data.articles=before;};
+  function renderArticles(){const root=$('articleList');root.replaceChildren();const filter=val('newsFilter');const bookmarked=$('onlyBookmarks').checked;const found=data.articles.filter(a=>(!filter||a.category===filter)&&(!bookmarked||a.bookmark)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));if(!found.length){root.append(txt('div','스크랩한 기사가 없습니다.','empty'));return;}for(const x of found){const item=document.createElement('div');item.className='item';const head=document.createElement('div');head.className='item-head';const left=document.createElement('div');const link=txt('a',x.title,'item-title');link.href=validUrl(x.url)||'#';link.target='_blank';link.rel='noopener noreferrer';left.append(link,txt('div',[x.category,x.source,x.date].filter(Boolean).join(' · '),'meta'));const controls=document.createElement('div');controls.className='action-row';controls.append(btn(x.bookmark?'★ 중요':'☆ 중요',()=>{x.bookmark=!x.bookmark;if(save())renderArticles();}));controls.append(btn('한 줄 수정',()=>openArticle(x.id)));controls.append(btn('삭제',()=>{if(!confirm('스크랩을 삭제할까요?'))return;const old=data.articles;data.articles=data.articles.filter(z=>z.id!==x.id);if(!commit())data.articles=old;},'btn small warn'));head.append(left,controls);item.append(head);if(x.note)item.append(txt('div','내 한 줄: '+x.note,'preview'));root.append(item);}}
+  // Export and import (local only)
+  $('backupBtn').onclick=()=>{const b=new Blob([JSON.stringify({...data,version:2,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download='jobtrack-backup-'+getDate()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('백업 파일을 내려받았어요.');};
+  $('restoreBtn').onclick=()=>$('restoreFile').click();
+  $('restoreFile').onchange=async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;e.target.value='';if(file.size>5_000_000){alert('5MB 이하의 JSON 백업 파일만 복원할 수 있습니다.');return;}try{const parsed=JSON.parse(await file.text());if(!parsed||parsed.version!==2||!['jobs','experiences','essays','interviewNotes','articles'].every(k=>Array.isArray(parsed[k]))){alert('JobTrack v2 백업 파일이 아닙니다.');return;}if(!confirm('현재 데이터를 백업 파일 내용으로 교체할까요? 기존 데이터는 덮어써집니다.'))return;const clean=defaults();for(const k of ['jobs','experiences','essays','interviewNotes','articles'])clean[k]=parsed[k].slice(0,2000).filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map(x=>{const out={};for(const [a,b] of Object.entries(x))if(typeof b==='string')out[a]=maxLength(b,50000);else if(typeof b==='boolean'||typeof b==='number')out[a]=b;return out;});const old=data;data=clean;if(commit()){toast('복원이 완료되었습니다.');setTab('dashboard');}else data=old;}catch(err){alert('백업 파일을 읽지 못했습니다.');}};
+  function renderAll(){renderDashboard();renderJobs();renderExperiences();syncExpSelectors();renderEssays();renderInterview();renderArticles();}
+  renderAll();const initial=location.hash.slice(1);setTab(['dashboard','jobs','insights','essays','interview','experiences'].includes(initial)?initial:'dashboard');
+})();
+</script>
 </body>
 </html>
