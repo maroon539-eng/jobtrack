@@ -93,7 +93,7 @@
     <!-- EXPERIENCE DB -->
     <section id="experiences" class="section">
       <div class="notice">하나의 경험 원본을 자소서와 면접 준비에서 함께 사용합니다. 사실을 정확히 기록하고, 실제로 수행한 역할과 근거를 구분해 두세요.</div>
-      <div class="action-row" style="margin-bottom:15px"><button class="btn primary" id="newExperience">+ 경험 등록</button><input type="text" id="expSearch" placeholder="경험명 / 역량 검색" aria-label="경험 검색" style="max-width:290px"></div>
+      <div class="action-row" style="margin-bottom:15px"><button class="btn primary" id="newExperience">+ 경험 등록</button><button class="btn" id="importExperiences">경험 17건 가져오기 ↑</button><input type="file" id="experienceImportFile" accept=".json,application/json" hidden><input type="text" id="expSearch" placeholder="경험명 / 역량 검색" aria-label="경험 검색" style="max-width:290px"></div>
       <div class="card" id="experienceEditor" hidden><h2 id="experienceEditorTitle">경험 등록</h2><form id="experienceForm" class="formgrid">
         <div class="inputrow"><div class="field"><label for="eTitle">경험명 *</label><input type="text" id="eTitle" required placeholder="예: 인턴 측정 조건 표준화"></div><div class="field"><label for="ePeriod">기간</label><input id="ePeriod" type="text" placeholder="예: 2026년 1~3월"></div></div>
         <div class="field"><label for="eSituation">상황 / 배경</label><textarea id="eSituation" placeholder="어떤 환경이었는가?"></textarea></div>
@@ -245,6 +245,35 @@
   $('newArticle').onclick=()=>openArticle();$('cancelArticle').onclick=()=>showEditor('articleEditor',false);$('newsFilter').onchange=renderArticles;$('onlyBookmarks').onchange=renderArticles;
   $('articleForm').onsubmit=e=>{e.preventDefault();const url=validUrl(val('nUrl'));if(!url){alert('http 또는 https 링크를 입력해 주세요.');return;}const x={id:editArticleId||uid(),title:val('nTitle'),url,category:val('nCategory'),date:val('nDate'),source:val('nSource'),note:val('nNote'),bookmark:$('nBookmark').checked};if(!x.title)return;const before=[...data.articles];data.articles=editArticleId?data.articles.map(z=>z.id===editArticleId?x:z):[...data.articles,x];if(commit()){editArticleId=null;showEditor('articleEditor',false);}else data.articles=before;};
   function renderArticles(){const root=$('articleList');root.replaceChildren();const filter=val('newsFilter');const bookmarked=$('onlyBookmarks').checked;const found=data.articles.filter(a=>(!filter||a.category===filter)&&(!bookmarked||a.bookmark)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));if(!found.length){root.append(txt('div','스크랩한 기사가 없습니다.','empty'));return;}for(const x of found){const item=document.createElement('div');item.className='item';const head=document.createElement('div');head.className='item-head';const left=document.createElement('div');const link=txt('a',x.title,'item-title');link.href=validUrl(x.url)||'#';link.target='_blank';link.rel='noopener noreferrer';left.append(link,txt('div',[x.category,x.source,x.date].filter(Boolean).join(' · '),'meta'));const controls=document.createElement('div');controls.className='action-row';controls.append(btn(x.bookmark?'★ 중요':'☆ 중요',()=>{x.bookmark=!x.bookmark;if(save())renderArticles();}));controls.append(btn('한 줄 수정',()=>openArticle(x.id)));controls.append(btn('삭제',()=>{if(!confirm('스크랩을 삭제할까요?'))return;const old=data.articles;data.articles=data.articles.filter(z=>z.id!==x.id);if(!commit())data.articles=old;},'btn small warn'));head.append(left,controls);item.append(head);if(x.note)item.append(txt('div','내 한 줄: '+x.note,'preview'));root.append(item);}}
+  // Merge experience-only import; never touch the other arrays.
+  $('importExperiences').onclick=()=>$('experienceImportFile').click();
+  $('experienceImportFile').onchange=async e=>{
+    const file=e.target.files?.[0];e.target.value='';if(!file)return;
+    if(file.size>2000000){alert('2MB 이하 경험 JSON만 가져올 수 있습니다.');return;}
+    try{
+      const parsed=JSON.parse(await file.text());
+      if(parsed?.format!=='jobtrack-experiences-import-v1'||!Array.isArray(parsed.experiences))throw Error('경험 DB 가져오기 전용 JSON 파일이 아닙니다.');
+      if(parsed.experiences.length>200)throw Error('한 번에 최대 200개까지 가져올 수 있습니다.');
+      const required=['title','action'];
+      const cleaned=parsed.experiences.map(x=>{
+        if(!x||typeof x!=='object'||required.some(k=>typeof x[k]!=='string'||!x[k].trim()))throw Error('경험명 또는 수행 행동이 누락된 항목이 있습니다.');
+        const y={};for(const k of ['id','title','period','situation','problem','goal','action','result','evidence','technical','lesson','tags','updatedAt'])if(typeof x[k]==='string')y[k]=x[k].slice(0,50000);
+        y.id=y.id||uid();return y;
+      });
+      const currentIds=new Set(data.experiences.map(x=>x.id));
+      const currentTitles=new Set(data.experiences.map(x=>x.title?.trim()));
+      const incomingIds=new Set();let skipped=0;
+      const added=cleaned.filter(x=>{
+        if(currentIds.has(x.id)||currentTitles.has(x.title.trim())||incomingIds.has(x.id)){skipped++;return false;}
+        incomingIds.add(x.id);return true;
+      });
+      if(!added.length){alert('새로 추가할 경험이 없습니다. 이미 등록된 항목은 그대로 유지했습니다.');return;}
+      if(!confirm(`기존 채용·자소서 데이터는 유지하고 경험 ${added.length}건만 추가할까요? (중복 ${skipped}건 건너뜀)`))return;
+      const old=data.experiences;data.experiences=[...old,...added];
+      if(!commit()){data.experiences=old;return;}
+      toast(`경험 ${added.length}건을 추가했습니다.`);setTab('experiences');
+    }catch(err){alert('가져오기 실패: '+err.message);}
+  };
   // Export and import (local only)
   $('backupBtn').onclick=()=>{const b=new Blob([JSON.stringify({...data,version:2,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download='jobtrack-backup-'+getDate()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('백업 파일을 내려받았어요.');};
   $('restoreBtn').onclick=()=>$('restoreFile').click();
